@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import JSZip from "jszip";
 
 function App() {
   const [files, setFiles] = useState([]);
@@ -8,9 +9,8 @@ function App() {
   const [filesCompressed, setFilesCompressed] = useState([]);
   const [imageFilesCompressed, setImageFilesCompressed] = useState([]);
 
-  const [amountCompress, setAmountCompress] = useState(50);
+  const [amountCompress, setAmountCompress] = useState(0.8);
   const [maxWidth, setMaxWidth] = useState(500);
-
 
   const handleUploads = (event) => {
     const filesInput = event.target.files;
@@ -74,7 +74,10 @@ function App() {
           contexto.drawImage(img, 0, 0, ancho, alto);
 
           // Exporta la imagen comprimida como una URL de datos
-          const imagenComprimida = canvas.toDataURL("image/jpeg", amountCompress);
+          const imagenComprimida = canvas.toDataURL(
+            "image/jpeg",
+            parseFloat(amountCompress)
+          );
 
           // Devuelve la imagen comprimida
           resolve(imagenComprimida);
@@ -97,21 +100,19 @@ function App() {
     return bytesToKBytes(bytes);
   };
 
-  const handleItemOperation = (event) => {
-    const operation = event.target.getAttribute("operation");
-    const itemIndex = parseInt(event.target.getAttribute("state-index"));
-    //console.log({ operation: operation, item: itemIndex });
+  const downloadSingle = (src) => {
+    const enlace = document.createElement("a");
+    // Establecer el atributo href con la URL de la imagen
+    enlace.href = src;
+    // Establecer el atributo download con el nombre de archivo deseado
+    enlace.download = "imagen.jpeg";
 
-    switch (operation) {
-      case "delete":
-        deleteItem(itemIndex);
-        break;
-      case "download":
-        break;
-    }
+    enlace.click();
   };
 
-  const deleteItem = (itemIndex) => {
+  const deleteItem = (event) => {
+    const itemIndex = parseInt(event.target.getAttribute("state-index"));
+
     const updatedItemsList = files.filter((_, i) => i !== itemIndex);
     const updatedImagesList = imageFiles.filter((_, i) => i !== itemIndex);
 
@@ -119,23 +120,57 @@ function App() {
     setImageFiles(updatedImagesList);
   };
 
-  const bytesToKBytes = (bytesValue) =>{
+  const bytesToKBytes = (bytesValue) => {
     return parseFloat(bytesValue / 1000).toFixed(2);
-  }
+  };
 
-  const handleRefresh = () =>{
+  const handleRefresh = () => {
     const defaultValue = [];
+    document.getElementById("formFile").value = [];
     setFiles(defaultValue);
     setImageFiles(defaultValue);
     setFilesCompressed(defaultValue);
     setImageFilesCompressed(defaultValue);
-  }
+  };
+
+  const base64ToBlob = (base64) => {
+    const byteString = atob(base64.split(",")[1]);
+    const mimeString = base64.split(",")[0].split(":")[1].split(";")[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeString });
+  };
+
+  const handleDownloadImages = () => {
+    const zip = new JSZip();
+
+    // Iterar sobre las imágenes
+    imageFilesCompressed.forEach((imageData, index) => {
+      // Convertir la imagen base64 a blob
+      const blob = base64ToBlob(imageData);
+
+      // Agregar la imagen al archivo ZIP
+      zip.file(`image_${index}.png`, blob, { binary: true });
+    });
+
+    // Generar el archivo ZIP
+    zip.generateAsync({ type: "blob" }).then((content) => {
+      // Crear un enlace para descargar el archivo ZIP
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(content);
+      link.download = "images.zip"; // Nombre del archivo ZIP
+      link.click();
+    });
+  };
 
   useEffect(() => {
     //console.log(files);
     //console.log(imageFiles);
     //console.log(imageFilesCompressed);
-  }, [files, imageFiles, imageFiles]);
+  }, [files, imageFiles, imageFiles, imageFilesCompressed]);
 
   return (
     <>
@@ -154,7 +189,7 @@ function App() {
           <h5 className="fs-3 text-center">🤯 Set compression 🤯</h5>
           <div className="row mb-2  m-auto">
             <div className="col">
-              <label htmlFor="">Amount</label>
+              <label htmlFor="">Quality</label>
             </div>
             <div className="col-3">
               <label htmlFor="">Max Width</label>
@@ -167,8 +202,8 @@ function App() {
                 type="range"
                 id="slider"
                 min="0"
-                max="100"
-                step="10"
+                max="1"
+                step=".1"
                 value={amountCompress}
                 onChange={() => setAmountCompress(event.target.value)}
               />
@@ -200,7 +235,7 @@ function App() {
                 operator={"🗑️"}
                 operation="delete"
                 itemIndex={index}
-                clickOperationHandler={handleItemOperation}
+                clickOperationHandler={deleteItem}
               />
             ))}
         </div>
@@ -225,12 +260,17 @@ function App() {
                 src={imageFilesCompressed[index]}
                 operator={"☁️"}
                 operation="download"
-                clickOperationHandler={handleItemOperation}
+                clickOperationHandler={() =>
+                  downloadSingle(imageFilesCompressed[index])
+                }
               />
             ))}
         </div>
         <div className="d-flex gap-3 py-3">
-          <button className="btn btn-outline-primary flex-fill">
+          <button
+            className="btn btn-outline-primary flex-fill"
+            onClick={handleDownloadImages}
+          >
             ☁️ Download All
           </button>
           <button
@@ -241,6 +281,28 @@ function App() {
           </button>
         </div>
       </div>
+      <footer className="text-center py-3 border-top">
+        <p className="p-0 m-0 mb-2">
+          ⚡ Developed by:{" "}
+          <a
+            className="link-warning"
+            target="_blank"
+            href="https://github.com/ErikWebDeveloper"
+          >
+            ErikWebDeveloper
+          </a>
+        </p>
+        <p className="p-0 m-0">
+          🚀{" "}
+          <a
+            className="link-danger"
+            target="_blank"
+            href="https://github.com/ErikWebDeveloper/image-compresor-web"
+          >
+            GitHub Repo
+          </a>
+        </p>
+      </footer>
     </>
   );
 }
@@ -265,7 +327,7 @@ function ImageItem({
           style={{ cursor: "pointer" }}
           operation={operation}
           state-index={itemIndex}
-          onClick={() => clickOperationHandler(event)}
+          onClick={clickOperationHandler}
         >
           {operator}
         </p>
