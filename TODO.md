@@ -4,4 +4,8 @@
 
 - Mejorar el SEO de la aplicación.
 
-- Testear bug en la app y reportarlos.
+- Testear *bugs* en la app y reportarlos.
+
+- ....
+
+- ....
