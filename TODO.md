@@ -6,6 +6,8 @@
 
 - Testear *bugs* en la app y reportarlos.
 
+- Subir un icono de la App.
+
 - ....
 
 - ....
