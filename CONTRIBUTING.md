@@ -36,7 +36,7 @@ git push origin mi-nueva-rama  # Asegúrate de hacer push en tu rama.
 # Asegúrate de que se esté haciendo la PR desde tu rama hacia main.
 ```
 
-### 📜 Normas de RM
+### 📜 Normas de PR
 
 - El nombre de la rama creada debe estar en castellano.
 
