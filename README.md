@@ -6,9 +6,9 @@ El Compresor de Imágenes es una aplicación web desarrollada con tecnologías m
 
 ## Tabla de contenido
 
-1. [🤏🏼 Requerimientos mínimos](#requerimientos-mínimos)
+1. [🤏🏼 Requerimientos mínimos](#🤏🏼-requerimientos-mínimos)
 
-2. [🛠️ Ejecutar la App en local](#ejecutar-la-app-en-local)
+2. [🛠️ Ejecutar la App en local](#🛠️-ejecutar-la-app-en-local)
 
 3. [🤝 Contribuir en el desarrollo](/CONTRIBUTING.md)
 
